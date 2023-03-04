@@ -14,6 +14,10 @@
 				setTimeout(updateProgress, 1000);
 			});
 		}
+
+		function clearUrl() {
+			$('#url').val('');
+		}
 	</script>
 </head>
 <body onload="updateProgress()">
@@ -22,6 +26,7 @@
 		<label for="url">Enter YouTube Video URL:</label>
 		<input type="text" name="url" id="url">
 		<input type="submit" value="Download">
+		<input type="button" value="Clear" onclick="clearUrl()">
 	</form>
 	<div id="progress-bar-container">
 		<div id="progress-bar"></div>
