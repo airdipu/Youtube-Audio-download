@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify, redirect, url_for
+from flask import Flask, request, render_template, jsonify
 from youtube_dl import YoutubeDL
 
 app = Flask(__name__)
@@ -9,38 +9,36 @@ def index():
         url = request.form['url']
         ydl_opts = {
             'format': 'bestaudio/best',
-            'outtmpl': 'audio.%(ext)s',
-            'noplaylist': True,
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
             'progress_hooks': [progress_hook],
         }
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
-        return redirect(url_for('status'))
+        return jsonify({'result': 'success'})
     return render_template('index.html')
 
 @app.route('/progress')
 def progress():
-    return jsonify({'progress': progress_dict})
+    return jsonify({'progress': {'percentage': percentage, 'kb_downloaded': kb_downloaded}})
 
 @app.route('/status')
 def status():
-    return render_template('status.html', kb_downloaded=progress_dict['kb_downloaded'], percentage=progress_dict['percentage'])
+    return render_template('status.html')
 
-@app.route('/back')
-def back():
-    return redirect(url_for('index'))
-
-def progress_hook(d):
-    if d['status'] == 'finished':
-        progress_dict['kb_downloaded'] = d.get('total_bytes', 0) / 1024
-        progress_dict['percentage'] = 100.0
-    elif d['status'] == 'downloading':
-        if d.get('total_bytes'):
-            kb_downloaded = d.get('downloaded_bytes', 0) / 1024
-            total_size = d.get('total_bytes', 0) / 1024
-            progress_dict['kb_downloaded'] = kb_downloaded
-            progress_dict['percentage'] = (kb_downloaded / total_size) * 100
+def progress_hook(progress):
+    global percentage, kb_downloaded
+    if progress['status'] == 'downloading':
+        total_bytes = progress.get('total_bytes')
+        downloaded_bytes = progress.get('downloaded_bytes')
+        if total_bytes and downloaded_bytes:
+            percentage = downloaded_bytes / total_bytes * 100
+            kb_downloaded = downloaded_bytes / 1024
+    elif progress['status'] == 'finished':
+        percentage = 100
 
 if __name__ == '__main__':
-    progress_dict = {'kb_downloaded': 0, 'percentage': 0}
-    app.run(debug=True)
+    app.run()

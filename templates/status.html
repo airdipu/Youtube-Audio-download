@@ -2,83 +2,45 @@
 <html>
 <head>
 	<title>Download Status</title>
-	<meta http-equiv="refresh" content="5">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 	<style>
 		body {
-			font-family: Arial, sans-serif;
-			margin: 0;
-			padding: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
 		}
 
-		.container {
-			max-width: 800px;
-			margin: 0 auto;
-			padding: 20px;
-		}
-
-		h1 {
-			font-size: 36px;
-			margin: 20px 0;
+		#download-status {
 			text-align: center;
-		}
-
-		.progress-bar {
-			background-color: #eee;
-			border-radius: 20px;
-			box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
-			margin: 50px auto;
-			overflow: hidden;
-			width: 80%;
-		}
-
-		.progress-bar-inner {
-			background-color: #4CAF50;
-			height: 20px;
-			text-align: center;
-			line-height: 20px;
-			color: white;
-			width: {{ percentage }}%;
-			transition: width 0.5s ease-in-out;
-		}
-
-		.status {
 			font-size: 24px;
-			margin: 20px auto;
-			text-align: center;
 		}
 
-		.back-button {
-			display: block;
-			margin: 20px auto;
-			text-align: center;
-		}
-
-		.back-button a {
-			background-color: #4CAF50;
-			border-radius: 5px;
-			color: white;
-			display: inline-block;
+		#back-button {
 			margin-top: 20px;
-			padding: 10px 20px;
-			text-decoration: none;
-			transition: background-color 0.3s ease-in-out;
-		}
-
-		.back-button a:hover {
-			background-color: #3e8e41;
+			font-size: 16px;
+			cursor: pointer;
 		}
 	</style>
 </head>
 <body>
-	<div class="container">
-		<h1>Download Status</h1>
-		<div class="progress-bar">
-			<div class="progress-bar-inner">{{ percentage }}%</div>
-		</div>
-		<p class="status">{{ status }}</p>
-		<div class="back-button">
-			<a href="/">Back to Download</a>
-		</div>
+	<div>
+		<h1 style="text-align: center;">Download Status</h1>
+		<p id="download-status"></p>
+		<div id="back-button">Back to Download Form</div>
 	</div>
+	<script>
+		$(document).ready(function() {
+			$.getJSON('/progress', function(data) {
+				if (data.progress > 0) {
+					$('#download-status').text(data.progress.kb_downloaded.toFixed(2) + ' KB downloaded');
+				}
+			});
+
+			$('#back-button').click(function() {
+				window.location.href = '/';
+			});
+		});
+	</script>
 </body>
 </html>
