@@ -3,6 +3,7 @@ from pytube import YouTube
 import os
 
 app = Flask(__name__)
+app.config['TIMEOUT'] = 60
 
 @app.route('/')
 def index():
