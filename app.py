@@ -1,44 +1,36 @@
-from flask import Flask, request, render_template, jsonify
-from youtube_dl import YoutubeDL
+from flask import Flask, render_template, request, send_file, jsonify
+from pytube import YouTube
+import os
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
-    if request.method == 'POST':
-        url = request.form['url']
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-            'progress_hooks': [progress_hook],
-        }
-        with YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-        return jsonify({'result': 'success'})
     return render_template('index.html')
+
+@app.route('/', methods=['POST'])
+def download():
+    url = request.form['url']
+    yt = YouTube(url, on_progress_callback=progress_function)
+    audio_stream = yt.streams.filter(only_audio=True).first()
+    output_file_path = "my_song.mp3"
+    audio_stream.download(output_path=".", filename=output_file_path)
+    return send_file(output_file_path, as_attachment=True)
 
 @app.route('/progress')
 def progress():
-    return jsonify({'progress': {'percentage': percentage, 'kb_downloaded': kb_downloaded}})
+    if 'progress' in globals():
+        return jsonify(progress=progress)
+    else:
+        return jsonify(progress=0)
 
-@app.route('/status')
-def status():
-    return render_template('status.html')
-
-def progress_hook(progress):
-    global percentage, kb_downloaded
-    if progress['status'] == 'downloading':
-        total_bytes = progress.get('total_bytes')
-        downloaded_bytes = progress.get('downloaded_bytes')
-        if total_bytes and downloaded_bytes:
-            percentage = downloaded_bytes / total_bytes * 100
-            kb_downloaded = downloaded_bytes / 1024
-    elif progress['status'] == 'finished':
-        percentage = 100
+def progress_function(stream, chunk, bytes_remaining):
+    total_size = stream.filesize
+    bytes_downloaded = total_size - bytes_remaining
+    percentage = bytes_downloaded / total_size * 100
+    kb_downloaded = bytes_downloaded / 1024
+    global progress
+    progress = {'percentage': percentage, 'kb_downloaded': kb_downloaded}
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

@@ -10,6 +10,7 @@
 					$('#progress-bar').css('width', data.progress.percentage + '%');
 					$('#progress-bar').text(data.progress.percentage.toFixed(2) + '%');
 					$('#download-status').text(data.progress.kb_downloaded.toFixed(2) + ' KB downloaded');
+					$('#download-status-frame').attr('src', '/download_status');
 				}
 				setTimeout(updateProgress, 1000);
 			});
@@ -93,6 +94,7 @@
 			<div id="progress-bar"></div>
 		</div>
 		<p id="download-status"></p>
+		<iframe id="download-status-frame" src="" style="display:none"></iframe>
 	</div>
 </body>
 </html>
