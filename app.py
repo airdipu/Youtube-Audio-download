@@ -5,16 +5,6 @@ import os
 app = Flask(__name__)
 app.config['TIMEOUT'] = 60
 
-@app.route('/data')
-def get_data():
-    data = {
-        'name': 'John Doe',
-        'age': 30,
-        'is_admin': True,
-    }
-    return jsonify(data)
-
-
 @app.route('/')
 def index():
     return render_template('index.html')
