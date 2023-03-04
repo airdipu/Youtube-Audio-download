@@ -1,27 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>YouTube Downloader - Progress</title>
-	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+	<title>YouTube Downloader</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 	<script>
-		var socket = io.connect('http://' + document.domain + ':' + location.port);
-		socket.on('connect', function() {
-			console.log('WebSocket connected');
-		});
-		socket.on('disconnect', function() {
-			console.log('WebSocket disconnected');
-		});
-		socket.on('progress', function(data) {
-			var percentage = data.percentage.toFixed(2);
-			var kb_downloaded = data.kb_downloaded.toFixed(2);
-			$('#progress-bar').attr('aria-valuenow', percentage);
-			$('#progress-bar').css('width', percentage + '%');
-			$('#progress-bar').text(percentage + '% (' + kb_downloaded + ' KB downloaded)');
-		});
+		function updateProgress() {
+			$.getJSON('/progress', function(data) {
+				if (data.progress > 0) {
+					$('#progress-bar').css('width', data.progress.percentage + '%');
+					$('#progress-bar').text(data.progress.percentage.toFixed(2) + '%');
+					$('#download-status').text(data.progress.kb_downloaded.toFixed(2) + ' KB downloaded');
+				}
+				setTimeout(updateProgress, 1000);
+			});
+		}
 	</script>
 </head>
-<body>
-	<h1>Download Progress</h1>
-	<div class="progress">
-		<div id="progress-bar" class="progress-bar" role="progressbar" aria-valuenow="
+<body onload="updateProgress()">
+	<h1>Download YouTube Audio</h1>
+	<form method="post">
+		<label for="url">Enter YouTube Video URL:</label>
+		<input type="text" name="url" id="url">
+		<input type="submit" value="Download">
+	</form>
+	<div id="progress-bar-container">
+		<div id="progress-bar"></div>
+	</div>
+	<p id="download-status"></p>
+</body>
+</html>
